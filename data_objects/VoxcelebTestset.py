@@ -52,12 +52,12 @@ class VoxcelebTestset(data.Dataset):
                   Normalize(mean, std)
               ])
 
-       def load_feature(self, feature_path):
+      def load_feature(self, feature_path):
               feature = feature_path
               test_sequence = generate_test_sequence(feature, self.partial_n_frames)
               return test_sequence
 
-       def __getitem__(self, index):
+      def __getitem__(self, index):
           
               (path_1, path_2) = self.test_pairs[index]
               feature1 = self.load_feature(path_1)
@@ -68,5 +68,5 @@ class VoxcelebTestset(data.Dataset):
                   feature2 = self.transform(feature2)
               return feature1, feature2
 
-        def __len__(self):
+      def __len__(self):
               return len(self.test_pairs)
