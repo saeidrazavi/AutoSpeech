@@ -40,34 +40,33 @@ def get_test_paths(pairs_path, db_dir):
 
 
 class VoxcelebTestset(data.Dataset):
-    def __init__(self, data_dir, partial_n_frames):
-        super(VoxcelebTestset, self).__init__()
-        self.data_dir = data_dir
-        self.root = data_dir.joinpath('feature', 'test')
-        self.test_pair_txt_fpath = data_dir.joinpath('veri_test.txt')
-        self.test_pairs = get_test_paths(self.test_pair_txt_fpath, self.root)
-        self.partial_n_frames = partial_n_frames
-        mean = np.load(self.data_dir.joinpath('mean.npy'))
-        std = np.load(self.data_dir.joinpath('std.npy'))
-        self.transform = T.Compose([
-            Normalize(mean, std)
-        ])
+      def __init__(self, src1,src2,mean_str,std_str, partial_n_frames):
+              super(VoxcelebTestset, self).__init__()
+              path_list = []
+              path_list.append((src1,src2))
+              self.test_pairs=path_list
+              self.partial_n_frames = partial_n_frames
+              mean = np.load(mean_str)
+              std = np.load(std_str)
+              self.transform = T.Compose([
+                  Normalize(mean, std)
+              ])
 
-    def load_feature(self, feature_path):
-        feature = np.load(feature_path)
-        test_sequence = generate_test_sequence(feature, self.partial_n_frames)
-        return test_sequence
+       def load_feature(self, feature_path):
+              feature = feature_path
+              test_sequence = generate_test_sequence(feature, self.partial_n_frames)
+              return test_sequence
 
-    def __getitem__(self, index):
-        (path_1, path_2, issame) = self.test_pairs[index]
+       def __getitem__(self, index):
+          
+              (path_1, path_2) = self.test_pairs[index]
+              feature1 = self.load_feature(path_1)
+              feature2 = self.load_feature(path_2)
 
-        feature1 = self.load_feature(path_1)
-        feature2 = self.load_feature(path_2)
+              if self.transform is not None:
+                  feature1 = self.transform(feature1)
+                  feature2 = self.transform(feature2)
+              return feature1, feature2
 
-        if self.transform is not None:
-            feature1 = self.transform(feature1)
-            feature2 = self.transform(feature2)
-        return feature1, feature2, issame
-
-    def __len__(self):
-        return len(self.test_pairs)
+        def __len__(self):
+              return len(self.test_pairs)
