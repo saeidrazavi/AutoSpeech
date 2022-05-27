@@ -154,8 +154,8 @@ def validate_verification(cfg, model, test_loader):
             Threshold=0.65
             with torch.no_grad():
                 for i, (input1, input2) in enumerate(test_loader):
-                    input1 = input1.cuda(non_blocking=True).squeeze(0)
-                    input2 = input2.cuda(non_blocking=True).squeeze(0)
+                    input1 = input1.squeeze(0)
+                    input2 = input2.squeeze(0)
 
                     # compute output
                     outputs1 = model(input1).mean(dim=0).unsqueeze(0)
