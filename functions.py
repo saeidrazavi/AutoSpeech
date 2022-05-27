@@ -146,12 +146,12 @@ def train_from_scratch(cfg, model, optimizer, train_loader, criterion, epoch, wr
             progress.print(i)
 
 
-def validate_verification(cfg, model, test_loader):
+def validate_verification(cfg, model, test_loader,thresh):
           
             # switch to evaluate mode
             model.eval()
             
-            Threshold=0.65
+            Threshold=thresh
             with torch.no_grad():
                 for i, (input1, input2) in enumerate(test_loader):
                     input1 = input1.squeeze(0)
