@@ -1,3 +1,4 @@
+from config import cfg
 def evaluate(scratch,path0,path1,mean,std,model,Thresh):
         
         cfg.merge_from_file(scratch)
