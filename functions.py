@@ -147,44 +147,33 @@ def train_from_scratch(cfg, model, optimizer, train_loader, criterion, epoch, wr
 
 
 def validate_verification(cfg, model, test_loader):
-    batch_time = AverageMeter('Time', ':6.3f')
-    progress = ProgressMeter(
-        len(test_loader), batch_time, prefix='Test: ', logger=logger)
+          
+            # switch to evaluate mode
+            model.eval()
+            
+            Threshold=0.65
+            with torch.no_grad():
+                for i, (input1, input2) in enumerate(test_loader):
+                    input1 = input1.cuda(non_blocking=True).squeeze(0)
+                    input2 = input2.cuda(non_blocking=True).squeeze(0)
 
-    # switch to evaluate mode
-    model.eval()
-    labels, distances = [], []
+                    # compute output
+                    outputs1 = model(input1).mean(dim=0).unsqueeze(0)
+                    outputs2 = model(input2).mean(dim=0).unsqueeze(0)
 
-    with torch.no_grad():
-        end = time.time()
-        for i, (input1, input2, label) in enumerate(test_loader):
-            input1 = input1.cuda(non_blocking=True).squeeze(0)
-            input2 = input2.cuda(non_blocking=True).squeeze(0)
-            label = label.cuda(non_blocking=True)
+                    dists = F.cosine_similarity(outputs1, outputs2)
+                    dists = dists.data.cpu().numpy()
+                    
+                    if(float(dists)>Threshold):
+                      answer=1
+                    else:
+                      answer=0           
+              
+                    # measure elapsed time
+                    
+              
 
-            # compute output
-            outputs1 = model(input1).mean(dim=0).unsqueeze(0)
-            outputs2 = model(input2).mean(dim=0).unsqueeze(0)
-
-            dists = F.cosine_similarity(outputs1, outputs2)
-            dists = dists.data.cpu().numpy()
-            distances.append(dists)
-            labels.append(label.data.cpu().numpy())
-
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
-
-            if i % 2000 == 0:
-                progress.print(i)
-
-        labels = np.array([sublabel for label in labels for sublabel in label])
-        distances = np.array([subdist for dist in distances for subdist in dist])
-
-        eer = compute_eer(distances, labels)
-        logger.info('Test EER: {:.8f}'.format(np.mean(eer)))
-
-    return eer
+            return answer,float(dists)
 
 
 def validate_identification(cfg, model, test_loader, criterion):
